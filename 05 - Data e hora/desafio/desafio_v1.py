@@ -31,10 +31,13 @@ class Cliente:
         self.endereco = endereco
         self.contas = []
         self.indice_conta = 0
+    
 
     def realizar_transacao(self, conta, transacao):
-        # TODO: validar o número de transações e invalidar a operação se for necessário
-        # print("\n@@@ Você excedeu o número de transações permitidas para hoje! @@@")
+        if len(conta.historico.transacoes_do_dia()) >= 2:
+            print("\n@@@ Você excedeu o número de transações permitidas para hoje! @@@")
+            return
+
         transacao.registrar(conta)
 
     def adicionar_conta(self, conta):
@@ -163,15 +166,25 @@ class Historico:
             }
         )
 
+
     def gerar_relatorio(self, tipo_transacao=None):
         for transacao in self._transacoes:
-            if tipo_transacao is None or transacao["tipo"].lower() == tipo_transacao.lower():
+            if (
+                tipo_transacao is None
+                or transacao["tipo"].lower() == tipo_transacao.lower()
+            ):
                 yield transacao
 
-    # TODO: filtrar todas as transações realizadas no dia
     def transacoes_do_dia(self):
-        pass
-
+        data_atual = datetime.utcnow().date()
+        transacoes = []
+        for transacao in self._transacoes:
+            data_transacao = datetime.strptime(
+                transacao["data"], "%d-%m-%Y %H:%M:%S"
+            ).date()
+            if data_atual == data_transacao:
+                transacoes.append(transacao)
+        return transacoes
 
 class Transacao(ABC):
     @property
